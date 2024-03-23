@@ -5,9 +5,7 @@ import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { LoginDto } from './dto/login.dto';
+import { CreateUserDto, UpdateAuthDto, LoginDto, RegisterDto } from './dto';
 
 import { User } from './entities/user.entity';
 
@@ -52,11 +50,13 @@ export class AuthService {
     }
   }
 
-  async register(): Promise<LoginResponse>{
+  async register( registerDto: RegisterDto ): Promise<LoginResponse>{
+
+    const user = await this.create( registerDto )
 
     return {
       user: user,
-      token: 'abc'
+      token: this.getJwtToken({ id: user._id })
     }
   }
 
@@ -85,8 +85,14 @@ export class AuthService {
   }
 
 
-  findAll() {
-    return `This action returns all auth`;
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
+  }
+
+  async findUserById( id: string ) {
+    const user = await this.userModel.findById(id);
+    const { password, ...rest } = user.toJSON();
+    return rest;
   }
 
   findOne(id: number) {
